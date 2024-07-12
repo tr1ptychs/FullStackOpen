@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import personsService from './services/persons'
+import './index.css'
 
 const Filter = ({ filterTerm, handleNewFilterTerm }) =>
     <>
@@ -44,11 +45,25 @@ const Numbers = ({ persons, filterTerm, removePerson }) => {
     )
 }
 
+const Notification = ({ message, messageType }) => {
+    if (message === null) {
+        return null
+    }
+
+    return (
+        <div className={messageType}>
+            {message}
+        </div>
+    )
+}
+
 const App = () => {
     const [persons, setPersons] = useState([])
     const [newName, setNewName] = useState('')
     const [newNumber, setNewNumber] = useState('')
     const [filterTerm, setNewFilterTerm] = useState('')
+    const [message, setMessage] = useState(null)
+    const [messageType, setMessageType] = useState('message')
 
     useEffect(() => {
         personsService
@@ -75,16 +90,29 @@ const App = () => {
                     setNewName('')
                     setNewNumber('')
                 })
-        } else {
-            if (window.confirm(`${newName} is already added to phonebook, replace the old number with a new one?`)) {
-                const person = persons.find((element) => element.name == newName)
-                personsService
-                    .update(person.id, newPerson)
-                    .then(_ =>
-                        personsService
-                            .getAll()
-                            .then(people => setPersons(people)))
-            }
+                .then(_ => {
+                    setMessageType('message')
+                    setMessage(`Added '${newPerson.name}' to the phonebook.`)
+                    setTimeout(() => { setMessage(null) }, 5000)
+                })
+        } else if (window.confirm(`${newName} is already added to phonebook, replace the old number with a new one?`)) {
+            const person = persons.find((element) => element.name == newName)
+            personsService
+                .update(person.id, newPerson)
+                .then(_ =>
+                    personsService
+                        .getAll()
+                        .then(people => setPersons(people)))
+                .then(_ => {
+                    setMessageType('message')
+                    setMessage(`Updated number for '${newPerson.name}'.`)
+                    setTimeout(() => { setMessage(null) }, 5000)
+                })
+                .catch(_ => {
+                    setMessageType('error')
+                    setMessage(`${person.name} already removed from server.`)
+                })   
+
         }
     }
 
@@ -96,6 +124,17 @@ const App = () => {
                     personsService
                         .getAll()
                         .then(people => setPersons(people)))
+                .then(_ => {
+                    setMessageType('message')
+                    setMessage(`Removed '${person.name}'.`)
+                    setTimeout(() => { setMessage(null) }, 5000)
+                })
+                .catch(_ => {
+                    setMessageType('error')
+                    setMessage(`${person.name} already removed from server.`)
+                    setTimeout(() => { setMessage(null) }, 5000)
+                })
+
         }
     }
 
@@ -115,6 +154,7 @@ const App = () => {
     return (
         <div>
             <h2>Phonebook</h2>
+            <Notification message={message} messageType={messageType} />
             <Filter filterTerm={filterTerm} handleNewFilterTerm={handleNewFilterTerm} />
             <Form addPerson={addPerson} newName={newName} handleNewName={handleNewName}
                 newNumber={newNumber} handleNewNumber={handleNewNumber} />
