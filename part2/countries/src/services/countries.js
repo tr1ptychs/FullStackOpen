@@ -1,6 +1,8 @@
 import axios from 'axios'
+const api_key = import.meta.env.VITE_WEATHER_KEY
+
 const countriesUrl = 'https://studies.cs.helsinki.fi/restcountries'
-const weatherUrl = ''
+const weatherUrl = 'https://api.openweathermap.org/data/2.5/weather'
 
 const getAll = () => {
     const request = axios.get(`${countriesUrl}/api/all`)
@@ -12,4 +14,9 @@ const getCountry = country => {
     return request.then(response => response.data)
 }
 
-export default { getAll, getCountry }
+const getWeather = city => {
+    const request = axios.get(`${weatherUrl}?q=${city.toLowerCase()}&appid=${api_key}&units=metric`)
+    return request.then(response => response.data)
+}
+
+export default { getAll, getCountry, getWeather }

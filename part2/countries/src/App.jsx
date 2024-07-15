@@ -25,8 +25,34 @@ const DisplayResults = ({ countries, setSearchTerm }) =>
                 onClick={_ => setSearchTerm(country.name.common)}>show</button></li>)}
     </div>
 
-const DisplayCountry = ({ country }) => {
-    const languages = Object.keys(country.languages).map(key => country.languages[key]);
+const DisplayWeather = ({ city }) => {
+    const [weather, setWeather] = useState(null)
+    useEffect(() => {
+        console.log(`getting weather: ${city}`)
+        countryService
+            .getWeather(city)
+            .then(newWeather => {
+                setWeather(newWeather)
+            })
+    }, [city])
+
+    console.log(weather, " in displayWeather")
+    if (weather == null) {
+        return
+    }
+    return (
+        <div>
+            <h3>Weather in {city}</h3>
+
+            <p>Temperature: {weather.main.temp}</p>
+            <img src={`https://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png`} alt={weather.weather[0].description} />
+            <p>Wind: {weather.wind.speed} m/s at {weather.wind.deg}°.</p>
+        </div>
+    )
+}
+
+const DisplayCountry = ({ country, weather }) => {
+    addEventListener("DOMContentLoaded", (event) => { console.log("domcontentloaded", event) })
     return (
         <div>
             <h1>{country.name.common}</h1>
@@ -35,11 +61,14 @@ const DisplayCountry = ({ country }) => {
 
             <h3>Languages</h3>
             <ul>
-                {languages.map(language => <li key={language}>{language}</li>)}
+                {Object.keys(country.languages)
+                    .map(key => country.languages[key])
+                    .map(language => <li key={language}>{language}</li>)}
             </ul>
             <div>
                 <img src={country.flags.png} alt={country.flags.alt} />
             </div>
+            <DisplayWeather weather={weather} city={country.capital[0]} />
         </div>
     )
 }
@@ -47,7 +76,6 @@ const DisplayCountry = ({ country }) => {
 const SearchResults = ({ term, countries, setSearchTerm }) => {
     const filteredCountries = countries.filter((country) =>
         country.name.common.toLowerCase().includes(term.toLowerCase()))
-
     if (filteredCountries.length > 10) {
         return (
             <TooManyResults term={term} />
@@ -71,14 +99,14 @@ const SearchResults = ({ term, countries, setSearchTerm }) => {
 function App() {
     const [searchTerm, setSearchTerm] = useState('')
     const [countries, setCountries] = useState([])
+
     useEffect(() => {
-        if (countries) {
-            countryService
-                .getAll()
-                .then(allCountries => {
-                    setCountries(allCountries)
-                })
-        }
+        console.log("getting countries...")
+        countryService
+            .getAll()
+            .then(allCountries => {
+                setCountries(allCountries)
+            })
     }, [])
 
     const handleNewSearchTerm = (event) => {
@@ -88,7 +116,8 @@ function App() {
     return (
         <div>
             <Search searchTerm={searchTerm} handleNewSearchTerm={handleNewSearchTerm} />
-            <SearchResults term={searchTerm} countries={countries} setSearchTerm={setSearchTerm} />
+            <SearchResults countries={countries}
+                term={searchTerm} setSearchTerm={setSearchTerm} />
         </div>
     )
 }

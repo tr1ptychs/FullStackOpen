@@ -24,4 +24,4 @@ dist-ssr
 *.sw?
 
 # keep my secrets please
-.env
+*.env
