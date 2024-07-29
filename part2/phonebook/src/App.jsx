@@ -73,10 +73,9 @@ const App = () => {
             })
     }, [])
 
-    //console.log('render ', persons.length, ' persons')
-
     const addPerson = (event) => {
         event.preventDefault()
+
         const newPerson = {
             name: newName,
             number: newNumber,
@@ -95,6 +94,11 @@ const App = () => {
                     setMessage(`Added '${newPerson.name}' to the phonebook.`)
                     setTimeout(() => { setMessage(null) }, 5000)
                 })
+                .catch(error => {
+                    setMessageType('error')
+                    setMessage(`Adding person failed: ${error.response.data.error}`)
+                    setTimeout(() => { setMessage(null) }, 5000)
+                })
         } else if (window.confirm(`${newName} is already added to phonebook, replace the old number with a new one?`)) {
             const person = persons.find((element) => element.name == newName)
             personsService
@@ -108,10 +112,11 @@ const App = () => {
                     setMessage(`Updated number for '${newPerson.name}'.`)
                     setTimeout(() => { setMessage(null) }, 5000)
                 })
-                .catch(_ => {
+                .catch(error  => {
                     setMessageType('error')
-                    setMessage(`${person.name} already removed from server.`)
-                })   
+                    setMessage(`Updating person failed: ${error.response.data.error}`)
+                    setTimeout(() => { setMessage(null) }, 5000)
+                })
 
         }
     }
