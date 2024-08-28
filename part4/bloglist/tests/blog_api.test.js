@@ -147,7 +147,13 @@ describe('delete by id', () => {
       .delete(`/api/blogs/${id}`)
       .expect(204)
 
-    await api.get(`/api/blogs/${id}`).expect(404)
+    const blogsAtEnd = await helper.blogsInDb()
+
+    assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length - 1)
+
+    const contents = blogsAtEnd.map(r => r.id)
+
+    assert(!contents.includes(id))
   })
 })
 
