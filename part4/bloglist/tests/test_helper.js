@@ -1,4 +1,8 @@
 const Blog = require('../models/blog')
+const User = require('../models/user')
+const supertest = require('supertest')
+const app = require('../app')
+const api = supertest(app)
 
 const initialBlogs = [
   {
@@ -63,6 +67,37 @@ const blogsInDb = async () => {
   return blogs.map(blog => blog.toJSON())
 }
 
+const usersInDb = async () => {
+  const users = await User.find({})
+  return users.map(u => u.toJSON())
+}
+
+const loginUser = async () => {
+  try {
+    const response = await api.post('/api/login').send({
+      username: 'test',
+      password: 'test',
+    });
+
+    return response.body;
+  } catch (error) {
+    console.error('Error loggin in:', error);
+  }
+};
+
+const getUserId = async (token) => {
+  const decodedToken = jwt.verify(token, process.env.SECRET)
+  const user = await User.findById(decodedToken.id)
+  if (user) {
+    return user
+  }
+  return null
+}
+
 module.exports = {
-  initialBlogs, nonExistingId, blogsInDb
+  initialBlogs,
+  nonExistingId,
+  blogsInDb,
+  usersInDb,
+  loginUser,
 }
